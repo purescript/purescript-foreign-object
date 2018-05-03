@@ -1,24 +1,23 @@
-module Data.Map.Gen where
+module Foreign.Object.Gen where
 
 import Prelude
 
 import Control.Monad.Gen (class MonadGen, chooseInt, resize, sized, unfoldable)
 import Control.Monad.Rec.Class (class MonadRec)
-import Data.Map (Map, fromFoldable)
+import Foreign.Object (Object, fromFoldable)
 import Data.Tuple (Tuple(..))
 import Data.List (List)
 
--- | Generates a `Map` using the specified key and value generators.
-genMap
-  :: forall m a b
+-- | Generates a `Object` using the specified key and value generators.
+genForeignObject
+  :: forall m a
   . MonadRec m
   => MonadGen m
-  => Ord a
-  => m a
-  -> m b
-  -> m (Map a b)
-genMap genKey genValue = sized \size -> do
+  => m String
+  -> m a
+  -> m (Object a)
+genForeignObject genKey genValue = sized \size -> do
   newSize <- chooseInt 0 size
   resize (const newSize) $
-    (fromFoldable :: List (Tuple a b) -> Map a b)
+    (fromFoldable :: List (Tuple String a) -> Object a)
       <$> unfoldable (Tuple <$> genKey <*> genValue)

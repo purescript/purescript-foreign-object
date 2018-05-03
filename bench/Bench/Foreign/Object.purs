@@ -1,16 +1,16 @@
-module Bench.Data.StrMap where
+module Bench.Foreign.Object where
 
 import Prelude
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Effect (Effect)
+import Effect.Console (log)
 import Performance.Minibench (benchWith)
 
 import Data.Tuple (Tuple(..))
 import Data.List as L
-import Data.StrMap as M
+import Foreign.Object as Object
 
-benchStrMap :: Eff (console :: CONSOLE) Unit
-benchStrMap = do
+benchForeignObject :: Effect Unit
+benchForeignObject = do
   log "fromFoldable"
   benchFromFoldable
 
@@ -21,7 +21,7 @@ benchStrMap = do
         shortPairList = L.take 10000 natPairs
 
     log $ "fromFoldable (" <> show (L.length shortPairList) <> ")"
-    benchWith 100 \_ -> M.fromFoldable shortPairList
+    benchWith 100 \_ -> Object.fromFoldable shortPairList
 
     log $ "fromFoldable (" <> show (L.length natPairs) <> ")"
-    benchWith 10 \_ -> M.fromFoldable natPairs
+    benchWith 10 \_ -> Object.fromFoldable natPairs

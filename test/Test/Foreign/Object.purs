@@ -1,11 +1,9 @@
-module Test.Data.StrMap where
+module Test.Foreign.Object where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (log, CONSOLE)
-import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Monad.Eff.Random (RANDOM)
+import Effect (Effect)
+import Effect.Console (log)
 import Control.Monad.Writer (runWriter, tell)
 import Data.Array as A
 import Data.Foldable (foldl, foldr)
@@ -15,7 +13,7 @@ import Data.List as L
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
-import Data.StrMap as M
+import Foreign.Object as O
 import Data.StrMap.Gen (genStrMap)
 import Data.Traversable (sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
@@ -25,10 +23,10 @@ import Test.QuickCheck ((<?>), quickCheck, quickCheck', (===))
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen as Gen
 
-newtype TestStrMap v = TestStrMap (M.StrMap v)
+newtype TestObject v = TestObject (O.Object v)
 
-instance arbTestStrMap :: (Arbitrary v) => Arbitrary (TestStrMap v) where
-  arbitrary = TestStrMap <$> genStrMap arbitrary arbitrary
+instance arbTestObject :: (Arbitrary v) => Arbitrary (TestObject v) where
+  arbitrary = TestObject <$> genStrMap arbitrary arbitrary
 
 newtype SmallArray v = SmallArray (Array v)
 
@@ -64,8 +62,8 @@ number n = n
 toAscArray :: forall a. M.StrMap a -> Array (Tuple String a)
 toAscArray = M.toAscUnfoldable
 
-strMapTests :: forall eff. Eff (console :: CONSOLE, random :: RANDOM, exception :: EXCEPTION | eff) Unit
-strMapTests = do
+objectTests :: Effect Unit
+objectTests = do
   log "Test inserting into empty tree"
   quickCheck $ \k v -> M.lookup k (M.insert k v M.empty) == Just (number v)
     <?> ("k: " <> show k <> ", v: " <> show v)
@@ -115,27 +113,27 @@ strMapTests = do
   quickCheck $ \k v -> M.toUnfoldable (M.singleton k v :: M.StrMap Int) == L.singleton (Tuple k v)
 
   log "filterWithKey gives submap"
-  quickCheck $ \(TestStrMap (s :: M.StrMap Int)) p ->
+  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
                  M.isSubmap (M.filterWithKey p s) s
 
   log "filterWithKey keeps those keys for which predicate is true"
-  quickCheck $ \(TestStrMap (s :: M.StrMap Int)) p ->
+  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
                  A.all (uncurry p) (M.toAscUnfoldable (M.filterWithKey p s) :: Array (Tuple String Int))
 
   log "filterKeys gives submap"
-  quickCheck $ \(TestStrMap (s :: M.StrMap Int)) p ->
+  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
                  M.isSubmap (M.filterKeys p s) s
 
   log "filterKeys keeps those keys for which predicate is true"
-  quickCheck $ \(TestStrMap (s :: M.StrMap Int)) p ->
+  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
                  A.all p (M.keys (M.filterKeys p s))
 
   log "filter gives submap"
-  quickCheck $ \(TestStrMap (s :: M.StrMap Int)) p ->
+  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
                  M.isSubmap (M.filter p s) s
 
   log "filter keeps those values for which predicate is true"
-  quickCheck $ \(TestStrMap (s :: M.StrMap Int)) p ->
+  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
                  A.all p (M.values (M.filter p s))
 
   log "fromFoldable [] = empty"
@@ -165,7 +163,7 @@ strMapTests = do
                        in f (f arr) == f (arr :: L.List (Tuple String Int)) <?> show arr
 
   log "fromFoldable . toUnfoldable = id"
-  quickCheck $ \(TestStrMap m) ->
+  quickCheck $ \(TestObject m) ->
     let f m1 = M.fromFoldable ((M.toUnfoldable m1) :: L.List (Tuple String Int)) in
     M.toUnfoldable (f m) == (M.toUnfoldable m :: L.List (Tuple String Int)) <?> show m
 
@@ -182,68 +180,68 @@ strMapTests = do
     M.fromFoldableWith (<>) arr == f (arr :: L.List (Tuple String String)) <?> show arr
 
   log "Lookup from union"
-  quickCheck $ \(TestStrMap m1) (TestStrMap m2) k ->
+  quickCheck $ \(TestObject m1) (TestObject m2) k ->
     M.lookup k (M.union m1 m2) == (case M.lookup k m1 of
       Nothing -> M.lookup k m2
       Just v -> Just (number v)) <?> ("m1: " <> show m1 <> ", m2: " <> show m2 <> ", k: " <> show k <> ", v1: " <> show (M.lookup k m1) <> ", v2: " <> show (M.lookup k m2) <> ", union: " <> show (M.union m1 m2))
 
   log "Union is idempotent"
-  quickCheck $ \(TestStrMap m1) (TestStrMap m2) ->
+  quickCheck $ \(TestObject m1) (TestObject m2) ->
     (m1 `M.union` m2) == ((m1 `M.union` m2) `M.union` (m2 :: M.StrMap Int)) <?> (show (M.size (m1 `M.union` m2)) <> " != " <> show (M.size ((m1 `M.union` m2) `M.union` m2)))
 
   log "fromFoldable = zip keys values"
-  quickCheck $ \(TestStrMap m) -> M.toUnfoldable m == A.zipWith Tuple (M.keys m) (M.values m :: Array Int)
+  quickCheck $ \(TestObject m) -> M.toUnfoldable m == A.zipWith Tuple (M.keys m) (M.values m :: Array Int)
 
   log "mapWithKey is correct"
-  quickCheck $ \(TestStrMap m :: TestStrMap Int) -> let
+  quickCheck $ \(TestObject m :: TestObject Int) -> let
     f k v = k <> show v
     resultViaMapWithKey = m # M.mapWithKey f
     resultViaLists = m # M.toUnfoldable # map (\(Tuple k v) → Tuple k (f k v)) # (M.fromFoldable :: forall a. L.List (Tuple String a) -> M.StrMap a)
     in resultViaMapWithKey === resultViaLists
 
   log "foldl = foldlWithIndex <<< const"
-  quickCheck \(TestStrMap m :: TestStrMap String) ->
+  quickCheck \(TestObject m :: TestObject String) ->
     let f z v = z <> "," <> v
     in foldl f "" m === foldlWithIndex (const f) "" m
 
   log "foldr = foldrWithIndex <<< const"
-  quickCheck \(TestStrMap m :: TestStrMap String) ->
+  quickCheck \(TestObject m :: TestObject String) ->
     let f v z = v <> "," <> z
     in foldr f "" m === foldrWithIndex (const f) "" m
 
   log "foldlWithIndex = foldrWithIndex with flipped operation"
-  quickCheck \(TestStrMap m :: TestStrMap String) ->
+  quickCheck \(TestObject m :: TestObject String) ->
     let f k z v = z <> "," <> k <> ":" <> v
         g k v z = k <> ":" <> v <> "," <> z
     in foldlWithIndex f "" m <> "," === "," <> foldrWithIndex g "" m
 
   log "foldMapWithIndex f ~ traverseWithIndex (\\k v -> tell (f k v))"
-  quickCheck \(TestStrMap m :: TestStrMap Int) ->
+  quickCheck \(TestObject m :: TestObject Int) ->
     let f k v = "(" <> "k" <> "," <> show v <> ")"
         resultA = foldMapWithIndex f m
         resultB = snd (runWriter (traverseWithIndex (\k v -> tell (f k v)) m))
     in resultA === resultB
 
   log "traverse = traverseWithIndex <<< const (for m = Writer)"
-  quickCheck \(TestStrMap m :: TestStrMap String) ->
+  quickCheck \(TestObject m :: TestObject String) ->
     runWriter (traverse tell m) ===
     runWriter (traverseWithIndex (const tell) m)
 
   log "sequence works (for m = Array)"
-  quickCheck \(TestStrMap mOfSmallArrays :: TestStrMap (SmallArray Int)) ->
+  quickCheck \(TestObject mOfSmallArrays :: TestObject (SmallArray Int)) ->
     let m                 = (\(SmallArray a) -> a) <$> mOfSmallArrays
         Tuple keys values = A.unzip (toAscArray m)
         resultViaArrays   = (M.fromFoldable <<< A.zip keys) <$> sequence values
     in  A.sort (sequence m) === A.sort (resultViaArrays)
 
   log "sequence works (for m = Maybe)"
-  quickCheck \(TestStrMap m :: TestStrMap (Maybe Int)) ->
+  quickCheck \(TestObject m :: TestObject (Maybe Int)) ->
     let Tuple keys values = A.unzip (toAscArray m)
         resultViaArrays   = (M.fromFoldable <<< A.zip keys) <$> sequence values
     in  sequence m === resultViaArrays
 
   log "Bug #63: accidental observable mutation in foldMap"
-  quickCheck \(TestStrMap m) ->
+  quickCheck \(TestObject m) ->
     let lhs = go m
         rhs = go m
     in lhs == rhs <?> ("lhs: " <> show lhs <> ", rhs: " <> show rhs)

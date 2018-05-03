@@ -1,6 +1,6 @@
 "use strict";
 
-exports._copyEff = function (m) {
+exports._copyST = function (m) {
   return function () {
     var r = {};
     for (var k in m) {
@@ -15,10 +15,10 @@ exports._copyEff = function (m) {
 exports.empty = {};
 
 exports.runST = function (f) {
-  return f;
+  return f();
 };
 
-exports._fmapStrMap = function (m0, f) {
+exports._fmapObject = function (m0, f) {
   var m = {};
   for (var k in m0) {
     if (hasOwnProperty.call(m0, k)) {
@@ -59,7 +59,7 @@ exports._foldM = function (bind) {
   };
 };
 
-exports._foldSCStrMap = function (m, z, f, fromMaybe) {
+exports._foldSCObject = function (m, z, f, fromMaybe) {
   var acc = z;
   for (var k in m) {
     if (hasOwnProperty.call(m, k)) {
@@ -95,7 +95,7 @@ exports._lookup = function (no, yes, k, m) {
   return k in m ? yes(m[k]) : no;
 };
 
-exports._unsafeDeleteStrMap = function (m, k) {
+exports._unsafeDeleteObject = function (m, k) {
   delete m[k];
   return m;
 };
