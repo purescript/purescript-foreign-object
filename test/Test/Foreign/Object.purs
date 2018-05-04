@@ -14,7 +14,7 @@ import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
 import Foreign.Object as O
-import Data.StrMap.Gen (genStrMap)
+import Foreign.Object.Gen (genForeignObject)
 import Data.Traversable (sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
@@ -26,7 +26,7 @@ import Test.QuickCheck.Gen as Gen
 newtype TestObject v = TestObject (O.Object v)
 
 instance arbTestObject :: (Arbitrary v) => Arbitrary (TestObject v) where
-  arbitrary = TestObject <$> genStrMap arbitrary arbitrary
+  arbitrary = TestObject <$> genForeignObject arbitrary arbitrary
 
 newtype SmallArray v = SmallArray (Array v)
 
@@ -50,153 +50,153 @@ instance arbInstruction :: (Arbitrary v) => Arbitrary (Instruction String v) whe
       false -> do
         pure (Delete k)
 
-runInstructions :: forall v. L.List (Instruction String v) -> M.StrMap v -> M.StrMap v
+runInstructions :: forall v. L.List (Instruction String v) -> O.Object v -> O.Object v
 runInstructions instrs t0 = foldl step t0 instrs
   where
-  step tree (Insert k v) = M.insert k v tree
-  step tree (Delete k) = M.delete k tree
+  step tree (Insert k v) = O.insert k v tree
+  step tree (Delete k) = O.delete k tree
 
 number :: Int -> Int
 number n = n
 
-toAscArray :: forall a. M.StrMap a -> Array (Tuple String a)
-toAscArray = M.toAscUnfoldable
+toAscArray :: forall a. O.Object a -> Array (Tuple String a)
+toAscArray = O.toAscUnfoldable
 
 objectTests :: Effect Unit
 objectTests = do
   log "Test inserting into empty tree"
-  quickCheck $ \k v -> M.lookup k (M.insert k v M.empty) == Just (number v)
+  quickCheck $ \k v -> O.lookup k (O.insert k v O.empty) == Just (number v)
     <?> ("k: " <> show k <> ", v: " <> show v)
 
   log "Test inserting two values with same key"
   quickCheck $ \k v1 v2 ->
-    M.lookup k (M.insert k v2 (M.insert k v1 M.empty)) == Just (number v2)
+    O.lookup k (O.insert k v2 (O.insert k v1 O.empty)) == Just (number v2)
 
   log "Test delete after inserting"
-  quickCheck $ \k v -> M.isEmpty (M.delete k (M.insert k (number v) M.empty))
+  quickCheck $ \k v -> O.isEmpty (O.delete k (O.insert k (number v) O.empty))
     <?> ("k: " <> show k <> ", v: " <> show v)
 
   log "Test pop after inserting"
-  quickCheck $ \k v -> M.pop k (M.insert k (number v) M.empty) == Just (Tuple v M.empty)
+  quickCheck $ \k v -> O.pop k (O.insert k (number v) O.empty) == Just (Tuple v O.empty)
     <?> ("k: " <> show k <> ", v: " <> show v)
 
   log "Pop non-existent key"
-  quickCheck $ \k1 k2 v -> k1 == k2 || M.pop k2 (M.insert k1 (number v) M.empty) == Nothing
+  quickCheck $ \k1 k2 v -> ((k1 == k2) || (O.pop k2 (O.insert k1 (number v) O.empty) == Nothing))
     <?> ("k1: " <> show k1 <> ", k2: " <> show k2 <> ", v: " <> show v)
 
   log "Insert two, lookup first"
-  quickCheck $ \k1 v1 k2 v2 -> k1 == k2 || M.lookup k1 (M.insert k2 (number v2) (M.insert k1 (number v1) M.empty)) == Just v1
+  quickCheck $ \k1 v1 k2 v2 -> ((k1 == k2) || (O.lookup k1 (O.insert k2 (number v2) (O.insert k1 (number v1) O.empty)) == Just v1))
     <?> ("k1: " <> show k1 <> ", v1: " <> show v1 <> ", k2: " <> show k2 <> ", v2: " <> show v2)
 
   log "Insert two, lookup second"
-  quickCheck $ \k1 v1 k2 v2 -> M.lookup k2 (M.insert k2 (number v2) (M.insert k1 (number v1) M.empty)) == Just v2
+  quickCheck $ \k1 v1 k2 v2 -> O.lookup k2 (O.insert k2 (number v2) (O.insert k1 (number v1) O.empty)) == Just v2
     <?> ("k1: " <> show k1 <> ", v1: " <> show v1 <> ", k2: " <> show k2 <> ", v2: " <> show v2)
 
   log "Insert two, delete one"
-  quickCheck $ \k1 v1 k2 v2 -> k1 == k2 || M.lookup k2 (M.delete k1 (M.insert k2 (number v2) (M.insert k1 (number v1) M.empty))) == Just v2
+  quickCheck $ \k1 v1 k2 v2 -> ((k1 == k2) || (O.lookup k2 (O.delete k1 (O.insert k2 (number v2) (O.insert k1 (number v1) O.empty))) == Just v2))
     <?> ("k1: " <> show k1 <> ", v1: " <> show v1 <> ", k2: " <> show k2 <> ", v2: " <> show v2)
 
   log "Lookup from empty"
-  quickCheck $ \k -> M.lookup k (M.empty :: M.StrMap Int) == Nothing
+  quickCheck $ \k -> O.lookup k (O.empty :: O.Object Int) == Nothing
 
   log "Lookup from singleton"
-  quickCheck $ \k v -> M.lookup k (M.singleton k (v :: Int)) == Just v
+  quickCheck $ \k v -> O.lookup k (O.singleton k (v :: Int)) == Just v
 
   log "Random lookup"
   quickCheck' 1000 $ \instrs k v ->
     let
-      tree :: M.StrMap Int
-      tree = M.insert k v (runInstructions instrs M.empty)
-    in M.lookup k tree == Just v <?> ("instrs:\n  " <> show instrs <> "\nk:\n  " <> show k <> "\nv:\n  " <> show v)
+      tree :: O.Object Int
+      tree = O.insert k v (runInstructions instrs O.empty)
+    in O.lookup k tree == Just v <?> ("instrs:\n  " <> show instrs <> "\nk:\n  " <> show k <> "\nv:\n  " <> show v)
 
   log "Singleton to list"
-  quickCheck $ \k v -> M.toUnfoldable (M.singleton k v :: M.StrMap Int) == L.singleton (Tuple k v)
+  quickCheck $ \k v -> O.toUnfoldable (O.singleton k v :: O.Object Int) == L.singleton (Tuple k v)
 
   log "filterWithKey gives submap"
-  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
-                 M.isSubmap (M.filterWithKey p s) s
+  quickCheck $ \(TestObject (s :: O.Object Int)) p ->
+                 O.isSubmap (O.filterWithKey p s) s
 
   log "filterWithKey keeps those keys for which predicate is true"
-  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
-                 A.all (uncurry p) (M.toAscUnfoldable (M.filterWithKey p s) :: Array (Tuple String Int))
+  quickCheck $ \(TestObject (s :: O.Object Int)) p ->
+                 A.all (uncurry p) (O.toAscUnfoldable (O.filterWithKey p s) :: Array (Tuple String Int))
 
   log "filterKeys gives submap"
-  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
-                 M.isSubmap (M.filterKeys p s) s
+  quickCheck $ \(TestObject (s :: O.Object Int)) p ->
+                 O.isSubmap (O.filterKeys p s) s
 
   log "filterKeys keeps those keys for which predicate is true"
-  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
-                 A.all p (M.keys (M.filterKeys p s))
+  quickCheck $ \(TestObject (s :: O.Object Int)) p ->
+                 A.all p (O.keys (O.filterKeys p s))
 
   log "filter gives submap"
-  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
-                 M.isSubmap (M.filter p s) s
+  quickCheck $ \(TestObject (s :: O.Object Int)) p ->
+                 O.isSubmap (O.filter p s) s
 
   log "filter keeps those values for which predicate is true"
-  quickCheck $ \(TestObject (s :: M.StrMap Int)) p ->
-                 A.all p (M.values (M.filter p s))
+  quickCheck $ \(TestObject (s :: O.Object Int)) p ->
+                 A.all p (O.values (O.filter p s))
 
   log "fromFoldable [] = empty"
-  quickCheck (M.fromFoldable [] == (M.empty :: M.StrMap Unit)
+  quickCheck (O.fromFoldable [] == (O.empty :: O.Object Unit)
     <?> "was not empty")
 
   log "fromFoldable & key collision"
   do
-    let nums = M.fromFoldable [Tuple "0" "zero", Tuple "1" "what", Tuple "1" "one"]
-    quickCheck (M.lookup "0" nums == Just "zero" <?> "invalid lookup - 0")
-    quickCheck (M.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
-    quickCheck (M.lookup "2" nums == Nothing     <?> "invalid lookup - 2")
+    let nums = O.fromFoldable [Tuple "0" "zero", Tuple "1" "what", Tuple "1" "one"]
+    quickCheck (O.lookup "0" nums == Just "zero" <?> "invalid lookup - 0")
+    quickCheck (O.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
+    quickCheck (O.lookup "2" nums == Nothing     <?> "invalid lookup - 2")
 
   log "fromFoldableWith const [] = empty"
-  quickCheck (M.fromFoldableWith const [] == (M.empty :: M.StrMap Unit)
+  quickCheck (O.fromFoldableWith const [] == (O.empty :: O.Object Unit)
     <?> "was not empty")
 
   log "fromFoldableWith (+) & key collision"
   do
-    let nums = M.fromFoldableWith (+) [Tuple "0" 1, Tuple "1" 1, Tuple "1" 1]
-    quickCheck (M.lookup "0" nums == Just 1  <?> "invalid lookup - 0")
-    quickCheck (M.lookup "1" nums == Just 2  <?> "invalid lookup - 1")
-    quickCheck (M.lookup "2" nums == Nothing <?> "invalid lookup - 2")
+    let nums = O.fromFoldableWith (+) [Tuple "0" 1, Tuple "1" 1, Tuple "1" 1]
+    quickCheck (O.lookup "0" nums == Just 1  <?> "invalid lookup - 0")
+    quickCheck (O.lookup "1" nums == Just 2  <?> "invalid lookup - 1")
+    quickCheck (O.lookup "2" nums == Nothing <?> "invalid lookup - 2")
 
   log "toUnfoldable . fromFoldable = id"
-  quickCheck $ \arr -> let f x = M.toUnfoldable (M.fromFoldable x)
+  quickCheck $ \arr -> let f x = O.toUnfoldable (O.fromFoldable x)
                        in f (f arr) == f (arr :: L.List (Tuple String Int)) <?> show arr
 
   log "fromFoldable . toUnfoldable = id"
   quickCheck $ \(TestObject m) ->
-    let f m1 = M.fromFoldable ((M.toUnfoldable m1) :: L.List (Tuple String Int)) in
-    M.toUnfoldable (f m) == (M.toUnfoldable m :: L.List (Tuple String Int)) <?> show m
+    let f m1 = O.fromFoldable ((O.toUnfoldable m1) :: L.List (Tuple String Int)) in
+    O.toUnfoldable (f m) == (O.toUnfoldable m :: L.List (Tuple String Int)) <?> show m
 
   log "fromFoldableWith const = fromFoldable"
-  quickCheck $ \arr -> M.fromFoldableWith const arr ==
-                       M.fromFoldable (arr :: L.List (Tuple String Int)) <?> show arr
+  quickCheck $ \arr -> O.fromFoldableWith const arr ==
+                       O.fromFoldable (arr :: L.List (Tuple String Int)) <?> show arr
 
   log "fromFoldableWith (<>) = fromFoldable . collapse with (<>) . group on fst"
   quickCheck $ \arr ->
     let combine (Tuple s a) (Tuple t b) = (Tuple s $ b <> a)
         foldl1 g = unsafePartial \(L.Cons x xs) -> foldl g x xs
-        f = M.fromFoldable <<< map (foldl1 combine <<< NEL.toList) <<<
+        f = O.fromFoldable <<< map (foldl1 combine <<< NEL.toList) <<<
             L.groupBy ((==) `on` fst) <<< L.sortBy (compare `on` fst) in
-    M.fromFoldableWith (<>) arr == f (arr :: L.List (Tuple String String)) <?> show arr
+    O.fromFoldableWith (<>) arr == f (arr :: L.List (Tuple String String)) <?> show arr
 
   log "Lookup from union"
   quickCheck $ \(TestObject m1) (TestObject m2) k ->
-    M.lookup k (M.union m1 m2) == (case M.lookup k m1 of
-      Nothing -> M.lookup k m2
-      Just v -> Just (number v)) <?> ("m1: " <> show m1 <> ", m2: " <> show m2 <> ", k: " <> show k <> ", v1: " <> show (M.lookup k m1) <> ", v2: " <> show (M.lookup k m2) <> ", union: " <> show (M.union m1 m2))
+    O.lookup k (O.union m1 m2) == (case O.lookup k m1 of
+      Nothing -> O.lookup k m2
+      Just v -> Just (number v)) <?> ("m1: " <> show m1 <> ", m2: " <> show m2 <> ", k: " <> show k <> ", v1: " <> show (O.lookup k m1) <> ", v2: " <> show (O.lookup k m2) <> ", union: " <> show (O.union m1 m2))
 
   log "Union is idempotent"
   quickCheck $ \(TestObject m1) (TestObject m2) ->
-    (m1 `M.union` m2) == ((m1 `M.union` m2) `M.union` (m2 :: M.StrMap Int)) <?> (show (M.size (m1 `M.union` m2)) <> " != " <> show (M.size ((m1 `M.union` m2) `M.union` m2)))
+    (m1 `O.union` m2) == ((m1 `O.union` m2) `O.union` (m2 :: O.Object Int)) <?> (show (O.size (m1 `O.union` m2)) <> " != " <> show (O.size ((m1 `O.union` m2) `O.union` m2)))
 
   log "fromFoldable = zip keys values"
-  quickCheck $ \(TestObject m) -> M.toUnfoldable m == A.zipWith Tuple (M.keys m) (M.values m :: Array Int)
+  quickCheck $ \(TestObject m) -> O.toUnfoldable m == A.zipWith Tuple (O.keys m) (O.values m :: Array Int)
 
   log "mapWithKey is correct"
   quickCheck $ \(TestObject m :: TestObject Int) -> let
     f k v = k <> show v
-    resultViaMapWithKey = m # M.mapWithKey f
-    resultViaLists = m # M.toUnfoldable # map (\(Tuple k v) → Tuple k (f k v)) # (M.fromFoldable :: forall a. L.List (Tuple String a) -> M.StrMap a)
+    resultViaMapWithKey = m # O.mapWithKey f
+    resultViaLists = m # O.toUnfoldable # map (\(Tuple k v) → Tuple k (f k v)) # (O.fromFoldable :: forall a. L.List (Tuple String a) -> O.Object a)
     in resultViaMapWithKey === resultViaLists
 
   log "foldl = foldlWithIndex <<< const"
@@ -231,13 +231,13 @@ objectTests = do
   quickCheck \(TestObject mOfSmallArrays :: TestObject (SmallArray Int)) ->
     let m                 = (\(SmallArray a) -> a) <$> mOfSmallArrays
         Tuple keys values = A.unzip (toAscArray m)
-        resultViaArrays   = (M.fromFoldable <<< A.zip keys) <$> sequence values
+        resultViaArrays   = (O.fromFoldable <<< A.zip keys) <$> sequence values
     in  A.sort (sequence m) === A.sort (resultViaArrays)
 
   log "sequence works (for m = Maybe)"
   quickCheck \(TestObject m :: TestObject (Maybe Int)) ->
     let Tuple keys values = A.unzip (toAscArray m)
-        resultViaArrays   = (M.fromFoldable <<< A.zip keys) <$> sequence values
+        resultViaArrays   = (O.fromFoldable <<< A.zip keys) <$> sequence values
     in  sequence m === resultViaArrays
 
   log "Bug #63: accidental observable mutation in foldMap"
@@ -246,5 +246,5 @@ objectTests = do
         rhs = go m
     in lhs == rhs <?> ("lhs: " <> show lhs <> ", rhs: " <> show rhs)
     where
-    go :: M.StrMap (Array Ordering) -> Array Ordering
-    go = M.foldMap \_ v -> v
+    go :: O.Object (Array Ordering) -> Array Ordering
+    go = O.foldMap \_ v -> v
