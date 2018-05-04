@@ -1,5 +1,5 @@
 {
-  "name": "purescript-maps",
+  "name": "purescript-foreign-object",
   "homepage": "https://github.com/purescript/purescript-foreign-object",
   "authors": [
     "Phil Freeman <paf31@cantab.net>",
@@ -8,7 +8,7 @@
   "description": "Functions for working with homogeneous JS objects from PureScript",
   "repository": {
     "type": "git",
-    "url": "git://github.com/purescript/purescript-maps.git"
+    "url": "git://github.com/purescript/purescript-foreign-object.git"
   },
   "license": "MIT",
   "ignore": [
@@ -22,11 +22,11 @@
   ],
   "dependencies": {
     "purescript-arrays": "#compiler/0.12",
+    "purescript-foldable-traversable": "#compiler/0.12",
     "purescript-functions": "#compiler/0.12",
-    "purescript-lists": "#compiler/0.12",
-    "purescript-st": "#compiler/0.12",
     "purescript-gen": "#compiler/0.12",
-    "purescript-foldable-traversable": "#compiler/0.12"
+    "purescript-lists": "#compiler/0.12",
+    "purescript-st": "#compiler/0.12"
   },
   "devDependencies": {
     "purescript-quickcheck": "#compiler/0.12",
