@@ -172,9 +172,7 @@ foreign import size :: forall a. Object a -> Int
 
 -- | Create a map with one key/value pair
 singleton :: forall a. String -> a -> Object a
-singleton k v = runST do
-  s <- OST.new
-  OST.poke s k v
+singleton k v = runST (OST.poke k v =<< OST.new)
 
 foreign import _lookup :: forall a z. Fn4 z (a -> z) String (Object a) z
 
@@ -188,13 +186,13 @@ member = runFn4 _lookup false (const true)
 
 -- | Insert or replace a key/value pair in a map
 insert :: forall a. String -> a -> Object a -> Object a
-insert k v = mutate (\s -> void $ OST.poke s k v)
+insert k v = mutate (OST.poke k v)
 
 foreign import _unsafeDeleteObject :: forall a. Fn2 (Object a) String (Object a)
 
 -- | Delete a key and value from a map
 delete :: forall a. String -> Object a -> Object a
-delete k = mutate (\s -> void $ OST.delete s k)
+delete k = mutate (OST.delete k)
 
 -- | Delete a key and value from a map, returning the value
 -- | as well as the subsequent map
@@ -215,7 +213,7 @@ update f k m = alter (maybe Nothing f) k m
 fromFoldable :: forall f a. Foldable f => f (Tuple String a) -> Object a
 fromFoldable l = runST do
   s <- OST.new
-  for_ (A.fromFoldable l) \(Tuple k v) -> void (OST.poke s k v)
+  for_ (A.fromFoldable l) \(Tuple k v) -> OST.poke k v s
   pure s
 
 foreign import _lookupST :: forall a r z. Fn4 z (a -> z) String (STObject r a) (ST r z)
@@ -225,7 +223,7 @@ foreign import _lookupST :: forall a r z. Fn4 z (a -> z) String (STObject r a) (
 fromFoldableWith :: forall f a. Foldable f => (a -> a -> a) -> f (Tuple String a) -> Object a
 fromFoldableWith f l = runST (do
   s <- OST.new
-  for_ l (\(Tuple k v) -> runFn4 _lookupST v (f v) k s >>= OST.poke s k)
+  for_ l (\(Tuple k v) -> runFn4 _lookupST v (f v) k s >>= \v' -> OST.poke k v' s)
   pure s)
 
 foreign import toArrayWithKey :: forall a b . (String -> a -> b) -> Object a -> Array b
@@ -253,7 +251,7 @@ values = toArrayWithKey (\_ v -> v)
 -- | Compute the union of two maps, preferring the first map in the case of
 -- | duplicate keys.
 union :: forall a. Object a -> Object a -> Object a
-union m = mutate (\s -> void $ foldM OST.poke s m)
+union m = mutate (\s -> foldM (\s' k v -> OST.poke k v s') s m)
 
 -- | Compute the union of a collection of maps
 unions :: forall f a. Foldable f => f (Object a) -> Object a
@@ -266,7 +264,7 @@ mapWithKey :: forall a b. (String -> a -> b) -> Object a -> Object b
 mapWithKey f m = runFn2 _mapWithKey m f
 
 instance semigroupObject :: (Semigroup a) => Semigroup (Object a) where
-  append m1 m2 = mutate (\s1 -> void $ foldM (\s2 k v2 -> OST.poke s2 k (runFn4 _lookup v2 (\v1 -> v1 <> v2) k m2)) s1 m1) m2
+  append m1 m2 = mutate (\s1 -> foldM (\s2 k v2 -> OST.poke k (runFn4 _lookup v2 (\v1 -> v1 <> v2) k m2) s2) s1 m1) m2
 
 instance monoidObject :: (Semigroup a) => Monoid (Object a) where
   mempty = empty
@@ -280,9 +278,8 @@ filterWithKey predicate m = runST go
   go = do
     m' <- OST.new
     foldM step m' m
-
     where
-    step acc k v = if predicate k v then OST.poke acc k v else pure acc
+      step acc k v = if predicate k v then OST.poke k v acc else pure acc
 
 -- | Filter out those key/value pairs of a map for which a predicate
 -- | on the key fails to hold.

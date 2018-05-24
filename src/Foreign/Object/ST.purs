@@ -28,13 +28,13 @@ foreign import data STObject :: Region -> Type -> Type
 foreign import new :: forall a r. ST r (STObject r a)
 
 -- | Get the value for a key in a mutable object
-peek :: forall a r. STObject r a -> String -> ST r (Maybe a)
+peek :: forall a r. String -> STObject r a -> ST r (Maybe a)
 peek = peekImpl Just Nothing
 
-foreign import peekImpl :: forall a b r. (a -> b) -> b -> STObject r a -> String -> ST r b
+foreign import peekImpl :: forall a b r. (a -> b) -> b -> String -> STObject r a -> ST r b
 
 -- | Update the value for a key in a mutable object
-foreign import poke :: forall a r. STObject r a -> String -> a -> ST r (STObject r a)
+foreign import poke :: forall a r. String -> a -> STObject r a -> ST r (STObject r a)
 
 -- | Remove a key and the corresponding value from a mutable object
-foreign import delete :: forall a r. STObject r a -> String -> ST r (STObject r a)
+foreign import delete :: forall a r. String -> STObject r a -> ST r (STObject r a)
