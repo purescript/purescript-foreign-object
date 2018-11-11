@@ -15,6 +15,7 @@ module Foreign.Object
   , toAscUnfoldable
   , fromFoldable
   , fromFoldableWith
+  , fromHomogeneous
   , delete
   , pop
   , member
@@ -56,6 +57,8 @@ import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Unfoldable (class Unfoldable)
 import Foreign.Object.ST (STObject)
 import Foreign.Object.ST as OST
+import Type.Row.Homogeneous (class Homogeneous)
+import Unsafe.Coerce (unsafeCoerce)
 
 -- | `Object a` represents a homogeneous JS Object with values of type `a`.
 foreign import data Object :: Type -> Type
@@ -170,7 +173,7 @@ isEmpty = all (\_ _ -> false)
 -- | Calculate the number of key/value pairs in a map
 foreign import size :: forall a. Object a -> Int
 
--- | Create a map with one key/value pair
+-- | Create an `Object a` with one key/value pair
 singleton :: forall a. String -> a -> Object a
 singleton k v = runST (OST.poke k v =<< OST.new)
 
@@ -209,7 +212,7 @@ alter f k m = case f (k `lookup` m) of
 update :: forall a. (a -> Maybe a) -> String -> Object a -> Object a
 update f k m = alter (maybe Nothing f) k m
 
--- | Create a map from a foldable collection of key/value pairs
+-- | Create an `Object a` from a foldable collection of key/value pairs
 fromFoldable :: forall f a. Foldable f => f (Tuple String a) -> Object a
 fromFoldable l = runST do
   s <- OST.new
@@ -218,13 +221,18 @@ fromFoldable l = runST do
 
 foreign import _lookupST :: forall a r z. Fn4 z (a -> z) String (STObject r a) (ST r z)
 
--- | Create a map from a foldable collection of key/value pairs, using the
+-- | Create an `Object a` from a foldable collection of key/value pairs, using the
 -- | specified function to combine values for duplicate keys.
 fromFoldableWith :: forall f a. Foldable f => (a -> a -> a) -> f (Tuple String a) -> Object a
 fromFoldableWith f l = runST (do
   s <- OST.new
   for_ l (\(Tuple k v) -> runFn4 _lookupST v (f v) k s >>= \v' -> OST.poke k v' s)
   pure s)
+
+-- | Create an `Object a` from a homogeneous record, i.e. all of the record
+-- | fields are of the same type.
+fromHomogeneous :: forall r a. Homogeneous r a => { | r } -> Object a
+fromHomogeneous = unsafeCoerce
 
 foreign import toArrayWithKey :: forall a b . (String -> a -> b) -> Object a -> Array b
 
