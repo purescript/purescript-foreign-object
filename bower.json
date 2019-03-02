@@ -34,7 +34,7 @@
     "purescript-typelevel-prelude": "^4.0.0"
   },
   "devDependencies": {
-    "purescript-quickcheck": "^5.0.0",
+    "purescript-quickcheck": "^6.0.0",
     "purescript-minibench": "^2.0.0",
     "purescript-assert": "^4.0.0"
   }
