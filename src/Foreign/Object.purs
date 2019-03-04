@@ -44,6 +44,7 @@ module Foreign.Object
 import Prelude
 
 import Control.Monad.ST (ST)
+import Control.Monad.ST as ST
 import Data.Array as A
 import Data.Eq (class Eq1)
 import Data.Foldable (class Foldable, foldl, foldr, for_)
@@ -216,7 +217,7 @@ update f k m = alter (maybe Nothing f) k m
 fromFoldable :: forall f a. Foldable f => f (Tuple String a) -> Object a
 fromFoldable l = runST do
   s <- OST.new
-  for_ (A.fromFoldable l) \(Tuple k v) -> OST.poke k v s
+  ST.foreach (A.fromFoldable l) \(Tuple k v) -> void $ OST.poke k v s
   pure s
 
 foreign import _lookupST :: forall a r z. Fn4 z (a -> z) String (STObject r a) (ST r z)

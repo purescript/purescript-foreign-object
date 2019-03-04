@@ -2,8 +2,6 @@ module Test.Foreign.Object where
 
 import Prelude
 
-import Effect (Effect)
-import Effect.Console (log)
 import Control.Monad.Writer (runWriter, tell)
 import Data.Array as A
 import Data.Foldable (foldl, foldr)
@@ -13,12 +11,16 @@ import Data.List as L
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
-import Foreign.Object as O
-import Foreign.Object.Gen (genForeignObject)
 import Data.Traversable (sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
+import Effect (Effect)
+import Effect.Console (log)
+import Foreign.Object (Object)
+import Foreign.Object as O
+import Foreign.Object.Gen (genForeignObject)
 import Partial.Unsafe (unsafePartial)
+import Test.Assert (assertEqual)
 import Test.QuickCheck ((<?>), quickCheck, quickCheck', (===))
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen as Gen
@@ -244,7 +246,14 @@ objectTests = do
   quickCheck \(TestObject m) ->
     let lhs = go m
         rhs = go m
+        go :: O.Object (Array Ordering) -> Array Ordering
+        go = O.foldMap (const identity)
     in lhs == rhs <?> ("lhs: " <> show lhs <> ", rhs: " <> show rhs)
-    where
-    go :: O.Object (Array Ordering) -> Array Ordering
-    go = O.foldMap \_ v -> v
+
+  log "fromFoldable stack safety"
+  do
+    let entries = 100000
+    assertEqual
+      { expected: entries
+      , actual: O.size (O.fromFoldable (map (\x -> Tuple (show x) x) (A.range 1 entries)))
+      }
