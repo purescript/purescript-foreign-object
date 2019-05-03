@@ -2,6 +2,8 @@ module Test.Main where
 
 import Prelude
 
+import Data.Array ((..), head, length)
+import Data.Array.NonEmpty as NA
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Console (log)
@@ -40,6 +42,18 @@ example = do
       # FO.insert "c" 3
 
   Assert.assertEqual { actual: converted, expected: built }
+
+  let
+    zeroToTen = 0 .. 10
+    modulo3 = FO.group (\n -> show $ n `mod` 3) zeroToTen
+    mod3Keys = FO.keys modulo3
+    mod3Groups = FO.values modulo3
+  Assert.assertEqual { actual: length mod3Groups, expected: 3}
+  Assert.assertEqual {
+      actual: map NA.sort $ head mod3Groups
+    , expected: Just $ NA.cons' 0 [3, 6, 9]
+  }
+
 
 main :: Effect Unit
 main = do

@@ -25,6 +25,7 @@ module Foreign.Object
   , filterWithKey
   , filterKeys
   , filter
+  , group
   , keys
   , values
   , union
@@ -46,6 +47,8 @@ import Prelude
 import Control.Monad.ST (ST)
 import Control.Monad.ST as ST
 import Data.Array as A
+import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty as NA
 import Data.Eq (class Eq1)
 import Data.Foldable (class Foldable, foldl, foldr, for_)
 import Data.FoldableWithIndex (class FoldableWithIndex)
@@ -54,7 +57,7 @@ import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Traversable (class Traversable, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
-import Data.Tuple (Tuple(..), fst, uncurry)
+import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Data.Unfoldable (class Unfoldable)
 import Foreign.Object.ST (STObject)
 import Foreign.Object.ST as OST
@@ -299,3 +302,15 @@ filterKeys predicate = filterWithKey $ const <<< predicate
 -- | on the value fails to hold.
 filter :: forall a. (a -> Boolean) -> Object a -> Object a
 filter predicate = filterWithKey $ const predicate
+
+-- | Group a `Foldable a` into an `Object a` based on a key
+-- | evaluation function `a -> String`.
+group :: forall a. (a -> String) -> Array a -> Object (NonEmptyArray a)
+group f l = fromFoldable lgs
+  where
+    tkey x y = fst x == fst y
+    pullKey naTup = Tuple (fst $ NA.head naTup) (map snd naTup)
+    tl = map (\x -> Tuple (f x) x) l
+    lg = A.groupBy tkey (A.sortWith fst tl)
+    lgs = map pullKey lg
+
