@@ -95,11 +95,6 @@ exports._lookup = function (no, yes, k, m) {
   return k in m ? yes(m[k]) : no;
 };
 
-exports._unsafeDeleteObject = function (m, k) {
-  delete m[k];
-  return m;
-};
-
 exports._lookupST = function (no, yes, k, m) {
   return function () {
     return k in m ? yes(m[k]) : no;

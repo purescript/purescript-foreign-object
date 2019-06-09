@@ -192,8 +192,6 @@ member = runFn4 _lookup false (const true)
 insert :: forall a. String -> a -> Object a -> Object a
 insert k v = mutate (OST.poke k v)
 
-foreign import _unsafeDeleteObject :: forall a. Fn2 (Object a) String (Object a)
-
 -- | Delete a key and value from a map
 delete :: forall a. String -> Object a -> Object a
 delete k = mutate (OST.delete k)
