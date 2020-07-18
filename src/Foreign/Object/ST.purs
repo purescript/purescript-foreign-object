@@ -24,6 +24,8 @@ import Data.Maybe (Maybe(..))
 -- | that of `Object a`, except that mutation is allowed.
 foreign import data STObject :: Region -> Type -> Type
 
+type role STObject nominal representational
+
 -- | Create a new, empty mutable object
 foreign import new :: forall a r. ST r (STObject r a)
 

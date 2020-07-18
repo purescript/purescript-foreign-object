@@ -64,6 +64,8 @@ import Unsafe.Coerce (unsafeCoerce)
 -- | `Object a` represents a homogeneous JS Object with values of type `a`.
 foreign import data Object :: Type -> Type
 
+type role Object representational
+
 foreign import _copyST :: forall a b r. a -> ST r b
 
 -- | Convert an immutable Object into a mutable Object
