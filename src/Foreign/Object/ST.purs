@@ -11,7 +11,7 @@ module Foreign.Object.ST
   , delete
   ) where
 
-import Control.Monad.ST (ST, kind Region)
+import Control.Monad.ST (ST, Region)
 import Data.Maybe (Maybe(..))
 
 -- | A reference to a mutable object
