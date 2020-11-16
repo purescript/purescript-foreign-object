@@ -31,7 +31,7 @@
     "purescript-tailrec": "master",
     "purescript-tuples": "master",
     "purescript-unfoldable": "master",
-    "purescript-typelevel-prelude": ">= 4.0.0 < 6.0.0"
+    "purescript-typelevel-prelude": "master"
   },
   "devDependencies": {
     "purescript-quickcheck": "master",
