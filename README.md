@@ -2,6 +2,7 @@
 
 [![Latest release](http://img.shields.io/github/release/purescript/purescript-foreign-object.svg)](https://github.com/purescript/purescript-foreign-object/releases)
 [![Build status](https://github.com/purescript/purescript-foreign-object/workflows/CI/badge.svg?branch=master)](https://github.com/purescript/purescript-foreign-object/actions?query=workflow%3ACI+branch%3Amaster)
+[![Pursuit](https://pursuit.purescript.org/packages/purescript-foreign-object/badge)](https://pursuit.purescript.org/packages/purescript-foreign-object)
 
 Functions for working with homogeneous JavaScript objects from PureScript. Similar to using `Map String a` but simply reusing JavaScript objects.
 
