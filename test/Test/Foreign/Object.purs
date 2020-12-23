@@ -2,6 +2,8 @@ module Test.Foreign.Object where
 
 import Prelude
 
+import Control.Alt ((<|>))
+import Control.Apply (lift2)
 import Control.Monad.Writer (runWriter, tell)
 import Data.Array as A
 import Data.Foldable (foldl, foldr)
@@ -9,7 +11,7 @@ import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
 import Data.Function (on)
 import Data.List as L
 import Data.List.NonEmpty as NEL
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromJust)
 import Data.NonEmpty ((:|))
 import Data.Traversable (sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
@@ -190,6 +192,24 @@ objectTests = do
   log "Union is idempotent"
   quickCheck $ \(TestObject m1) (TestObject m2) ->
     (m1 `O.union` m2) == ((m1 `O.union` m2) `O.union` (m2 :: O.Object Int)) <?> (show (O.size (m1 `O.union` m2)) <> " != " <> show (O.size ((m1 `O.union` m2) `O.union` m2)))
+  
+  log "Lookup from unionWith"
+  quickCheck $ \(TestObject m1 :: TestObject Int) (TestObject m2 :: TestObject Int) k -> let
+    v1 = O.lookup k m1
+    v2 = O.lookup k m2
+    f a1 a2 = a1 - a2
+    in case O.lookup k (O.unionWith f m1 m2) of
+      Nothing -> not (O.member k m1 || O.member k m2)
+        <?> ("k: " <> show k <> ", v1: " <> show v1 <> ", v2: " <> show v2 <> ", key doesn't appear in the union object")
+      Just v ->
+        let expected = unsafePartial fromJust $ lift2 f v1 v2 <|> v1 <|> v2
+        in v == expected
+          <?> ("k: " <> show k <> ", v1: " <> show v1 <> ", v2: " <> show v2 <> ", expected: " <> show expected <> ", actual: " <> show v)
+
+  log "union = unionWith const"
+  quickCheck $ \(TestObject m1 :: TestObject Int) (TestObject m2 :: TestObject Int) ->
+    O.union m1 m2 == O.unionWith const m1 m2
+      <?> (show (O.union m1 m2) <> " != " <> show (O.unionWith const m1 m2))
 
   log "fromFoldable = zip keys values"
   quickCheck $ \(TestObject m) -> O.toUnfoldable m == A.zipWith Tuple (O.keys m) (O.values m :: Array Int)
