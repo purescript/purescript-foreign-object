@@ -11,12 +11,13 @@ import Data.List as L
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
+import Data.Semigroup.First (First(..))
+import Data.Semigroup.Last (Last(..))
 import Data.Traversable (sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Effect (Effect)
 import Effect.Console (log)
-import Foreign.Object (Object)
 import Foreign.Object as O
 import Foreign.Object.Gen (genForeignObject)
 import Partial.Unsafe (unsafePartial)
@@ -257,3 +258,13 @@ objectTests = do
       { expected: entries
       , actual: O.size (O.fromFoldable (map (\x -> Tuple (show x) x) (A.range 1 entries)))
       }
+
+  log "Semigroup instance"
+  assertEqual
+    { expected: O.singleton "a" (First 1)
+    , actual: O.singleton "a" (First 1) <> O.singleton "a" (First 2)
+    }
+  assertEqual
+    { expected: O.singleton "a" (Last 2)
+    , actual: O.singleton "a" (Last 1) <> O.singleton "a" (Last 2)
+    }

@@ -273,7 +273,7 @@ mapWithKey :: forall a b. (String -> a -> b) -> Object a -> Object b
 mapWithKey f m = runFn2 _mapWithKey m f
 
 instance semigroupObject :: (Semigroup a) => Semigroup (Object a) where
-  append m1 m2 = mutate (\s1 -> foldM (\s2 k v2 -> OST.poke k (runFn4 _lookup v2 (\v1 -> v1 <> v2) k m2) s2) s1 m1) m2
+  append m1 m2 = mutate (\s1 -> foldM (\s2 k v1 -> OST.poke k (runFn4 _lookup v1 (\v2 -> v1 <> v2) k m2) s2) s1 m1) m2
 
 instance monoidObject :: (Semigroup a) => Monoid (Object a) where
   mempty = empty
