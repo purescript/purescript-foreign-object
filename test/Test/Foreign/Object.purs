@@ -10,13 +10,13 @@ import Data.Function (on)
 import Data.List as L
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.NonEmpty ((:|))
+import Data.Semigroup.First (First(..))
+import Data.Semigroup.Last (Last(..))
 import Data.Traversable (sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Effect (Effect)
 import Effect.Console (log)
-import Foreign.Object (Object)
 import Foreign.Object as O
 import Foreign.Object.Gen (genForeignObject)
 import Partial.Unsafe (unsafePartial)
@@ -44,7 +44,7 @@ instance showInstruction :: (Show k, Show v) => Show (Instruction k v) where
 instance arbInstruction :: (Arbitrary v) => Arbitrary (Instruction String v) where
   arbitrary = do
     b <- arbitrary
-    k <- Gen.frequency $ Tuple 10.0 (pure "hasOwnProperty") :| pure (Tuple 50.0 arbitrary)
+    k <- Gen.frequency $ NEL.cons' (Tuple 10.0 (pure "hasOwnProperty")) (pure (Tuple 50.0 arbitrary))
     case b of
       true -> do
         v <- arbitrary
@@ -184,14 +184,14 @@ objectTests = do
   log "unionWith"
   for_ [Tuple (+) 0, Tuple (*) 1] $ \(Tuple op ident) ->
     quickCheck $ \(TestObject m1) (TestObject m2) k ->
-      let u = O.unionWith op m1 m2 :: Object Int
+      let u = O.unionWith op m1 m2 :: O.Object Int
       in case O.lookup k u of
            Nothing -> not (O.member k m1 || O.member k m2)
            Just v -> v == op (fromMaybe ident (O.lookup k m1)) (fromMaybe ident (O.lookup k m2))
 
   log "unionWith argument order"
   quickCheck $ \(TestObject m1) (TestObject m2) k ->
-    let u   = O.unionWith (-) m1 m2 :: Object Int
+    let u   = O.unionWith (-) m1 m2 :: O.Object Int
         in1 = O.member k m1
         v1  = O.lookup k m1
         in2 = O.member k m2
@@ -268,3 +268,13 @@ objectTests = do
       { expected: entries
       , actual: O.size (O.fromFoldable (map (\x -> Tuple (show x) x) (A.range 1 entries)))
       }
+
+  log "Semigroup instance"
+  assertEqual
+    { expected: O.singleton "a" (First 1)
+    , actual: O.singleton "a" (First 1) <> O.singleton "a" (First 2)
+    }
+  assertEqual
+    { expected: O.singleton "a" (Last 2)
+    , actual: O.singleton "a" (Last 1) <> O.singleton "a" (Last 2)
+    }
