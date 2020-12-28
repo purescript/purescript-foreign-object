@@ -4,12 +4,12 @@ import Prelude
 
 import Control.Monad.Writer (runWriter, tell)
 import Data.Array as A
-import Data.Foldable (foldl, foldr)
+import Data.Foldable (foldl, foldr, for_)
 import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
 import Data.Function (on)
 import Data.List as L
 import Data.List.NonEmpty as NEL
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Semigroup.First (First(..))
 import Data.Semigroup.Last (Last(..))
 import Data.Traversable (sequence, traverse)
@@ -181,15 +181,26 @@ objectTests = do
             L.groupBy ((==) `on` fst) <<< L.sortBy (compare `on` fst) in
     O.fromFoldableWith (<>) arr == f (arr :: L.List (Tuple String String)) <?> show arr
 
-  log "Lookup from union"
-  quickCheck $ \(TestObject m1) (TestObject m2) k ->
-    O.lookup k (O.union m1 m2) == (case O.lookup k m1 of
-      Nothing -> O.lookup k m2
-      Just v -> Just (number v)) <?> ("m1: " <> show m1 <> ", m2: " <> show m2 <> ", k: " <> show k <> ", v1: " <> show (O.lookup k m1) <> ", v2: " <> show (O.lookup k m2) <> ", union: " <> show (O.union m1 m2))
+  log "unionWith"
+  for_ [Tuple (+) 0, Tuple (*) 1] $ \(Tuple op ident) ->
+    quickCheck $ \(TestObject m1) (TestObject m2) k ->
+      let u = O.unionWith op m1 m2 :: O.Object Int
+      in case O.lookup k u of
+           Nothing -> not (O.member k m1 || O.member k m2)
+           Just v -> v == op (fromMaybe ident (O.lookup k m1)) (fromMaybe ident (O.lookup k m2))
 
-  log "Union is idempotent"
-  quickCheck $ \(TestObject m1) (TestObject m2) ->
-    (m1 `O.union` m2) == ((m1 `O.union` m2) `O.union` (m2 :: O.Object Int)) <?> (show (O.size (m1 `O.union` m2)) <> " != " <> show (O.size ((m1 `O.union` m2) `O.union` m2)))
+  log "unionWith argument order"
+  quickCheck $ \(TestObject m1) (TestObject m2) k ->
+    let u   = O.unionWith (-) m1 m2 :: O.Object Int
+        in1 = O.member k m1
+        v1  = O.lookup k m1
+        in2 = O.member k m2
+        v2  = O.lookup k m2
+    in case O.lookup k u of
+          Just v | in1 && in2 -> Just v == ((-) <$> v1 <*> v2)
+          Just v | in1        -> Just v == v1
+          Just v              -> Just v == v2
+          Nothing             -> not (in1 || in2)
 
   log "fromFoldable = zip keys values"
   quickCheck $ \(TestObject m) -> O.toUnfoldable m == A.zipWith Tuple (O.keys m) (O.values m :: Array Int)

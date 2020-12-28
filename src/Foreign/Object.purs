@@ -28,6 +28,7 @@ module Foreign.Object
   , keys
   , values
   , union
+  , unionWith
   , unions
   , isSubmap
   , fold
@@ -261,6 +262,12 @@ values = toArrayWithKey (\_ v -> v)
 -- | duplicate keys.
 union :: forall a. Object a -> Object a -> Object a
 union m = mutate (\s -> foldM (\s' k v -> OST.poke k v s') s m)
+
+-- | Compute the union of two maps, using the specified function
+-- | to combine values for duplicate keys.
+unionWith :: forall a. (a -> a -> a) -> Object a -> Object a -> Object a
+unionWith f m1 m2 =
+  mutate (\s1 -> foldM (\s2 k v1 -> OST.poke k (runFn4 _lookup v1 (\v2 -> f v1 v2) k m2) s2) s1 m1) m2
 
 -- | Compute the union of a collection of maps
 unions :: forall f a. Foldable f => f (Object a) -> Object a
