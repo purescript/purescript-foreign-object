@@ -10,7 +10,6 @@ import Data.Function (on)
 import Data.List as L
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
-import Data.NonEmpty ((:|))
 import Data.Semigroup.First (First(..))
 import Data.Semigroup.Last (Last(..))
 import Data.Traversable (sequence, traverse)
@@ -45,7 +44,7 @@ instance showInstruction :: (Show k, Show v) => Show (Instruction k v) where
 instance arbInstruction :: (Arbitrary v) => Arbitrary (Instruction String v) where
   arbitrary = do
     b <- arbitrary
-    k <- Gen.frequency $ Tuple 10.0 (pure "hasOwnProperty") :| pure (Tuple 50.0 arbitrary)
+    k <- Gen.frequency $ NEL.cons' (Tuple 10.0 (pure "hasOwnProperty")) (pure (Tuple 50.0 arbitrary))
     case b of
       true -> do
         v <- arbitrary
