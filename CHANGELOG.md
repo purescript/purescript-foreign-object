@@ -5,12 +5,21 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+- Updated dependencies for PureScript 0.14 (#17)
+- Fixed the `Semigroup` instance for `Foreign.Object.Object` (#19)
 
 New features:
+- Added roles declarations to allow safe coercions (#16)
+- Added `unionWith` (#21)
 
 Bugfixes:
+- Fixed test using `Arbitrary` instance for `Instruction String v` (#22)
 
 Other improvements:
+- Migrated CI to GitHub Actions and updated installation instructions to use Spago (#20)
+- Added a CHANGELOG.md file and pull request template (#24 #25)
+- Improved docs for `runST` (#12)
+- Implemented `Semigroup` via `unionWith` (#23)
 
 ## [v2.0.3](https://github.com/purescript/purescript-foreign-object/releases/tag/v2.0.3) - 2019-06-09
 
