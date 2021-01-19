@@ -17,7 +17,7 @@ Bugfixes:
 
 Other improvements:
 - Migrated CI to GitHub Actions and updated installation instructions to use Spago (#20)
-- Added a CHANGELOG.md file and pull request template (#24 #25)
+- Added a CHANGELOG.md file and pull request template (#24, #25)
 - Improved docs for `runST` (#12)
 - Implemented `Semigroup` via `unionWith` (#23)
 
