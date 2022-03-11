@@ -12,7 +12,7 @@ export function _copyST(m) {
   };
 }
 
-export var empty = {};
+export const empty = {};
 
 export function runST(f) {
   return f();
@@ -115,6 +115,6 @@ function toArrayWithKey(f) {
 
 export {toArrayWithKey};
 
-export var keys = Object.keys || toArrayWithKey(function (k) {
+export const keys = Object.keys || toArrayWithKey(function (k) {
   return function () { return k; };
 });
