@@ -1,5 +1,3 @@
-"use strict";
-
 export function _copyST(m) {
   return function () {
     var r = {};
