@@ -4,7 +4,7 @@ exports["new"] = function () {
   return {};
 };
 
-exports.peekImpl = function (just) {
+export function peekImpl(just) {
   return function (nothing) {
     return function (k) {
       return function (m) {
@@ -14,9 +14,9 @@ exports.peekImpl = function (just) {
       };
     };
   };
-};
+}
 
-exports.poke = function (k) {
+export function poke(k) {
   return function (v) {
     return function (m) {
       return function () {
@@ -25,7 +25,7 @@ exports.poke = function (k) {
       };
     };
   };
-};
+}
 
 exports["delete"] = function (k) {
   return function (m) {
