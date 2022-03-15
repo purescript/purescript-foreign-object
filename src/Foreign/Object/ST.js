@@ -1,10 +1,9 @@
-"use strict";
-
-exports["new"] = function () {
+const newImpl = function () {
   return {};
 };
+export { newImpl as new };
 
-exports.peekImpl = function (just) {
+export function peekImpl(just) {
   return function (nothing) {
     return function (k) {
       return function (m) {
@@ -14,9 +13,9 @@ exports.peekImpl = function (just) {
       };
     };
   };
-};
+}
 
-exports.poke = function (k) {
+export function poke(k) {
   return function (v) {
     return function (m) {
       return function () {
@@ -25,9 +24,9 @@ exports.poke = function (k) {
       };
     };
   };
-};
+}
 
-exports["delete"] = function (k) {
+const deleteImpl = function (k) {
   return function (m) {
     return function () {
       delete m[k];
@@ -35,3 +34,4 @@ exports["delete"] = function (k) {
     };
   };
 };
+export { deleteImpl as delete };

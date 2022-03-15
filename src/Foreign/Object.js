@@ -1,6 +1,4 @@
-"use strict";
-
-exports._copyST = function (m) {
+export function _copyST(m) {
   return function () {
     var r = {};
     for (var k in m) {
@@ -10,15 +8,15 @@ exports._copyST = function (m) {
     }
     return r;
   };
-};
+}
 
-exports.empty = {};
+export const empty = {};
 
-exports.runST = function (f) {
+export function runST(f) {
   return f();
-};
+}
 
-exports._fmapObject = function (m0, f) {
+export function _fmapObject(m0, f) {
   var m = {};
   for (var k in m0) {
     if (hasOwnProperty.call(m0, k)) {
@@ -26,9 +24,9 @@ exports._fmapObject = function (m0, f) {
     }
   }
   return m;
-};
+}
 
-exports._mapWithKey = function (m0, f) {
+export function _mapWithKey(m0, f) {
   var m = {};
   for (var k in m0) {
     if (hasOwnProperty.call(m0, k)) {
@@ -36,9 +34,9 @@ exports._mapWithKey = function (m0, f) {
     }
   }
   return m;
-};
+}
 
-exports._foldM = function (bind) {
+export function _foldM(bind) {
   return function (f) {
     return function (mz) {
       return function (m) {
@@ -57,9 +55,9 @@ exports._foldM = function (bind) {
       };
     };
   };
-};
+}
 
-exports._foldSCObject = function (m, z, f, fromMaybe) {
+export function _foldSCObject(m, z, f, fromMaybe) {
   var acc = z;
   for (var k in m) {
     if (hasOwnProperty.call(m, k)) {
@@ -70,18 +68,18 @@ exports._foldSCObject = function (m, z, f, fromMaybe) {
     }
   }
   return acc;
-};
+}
 
-exports.all = function (f) {
+export function all(f) {
   return function (m) {
     for (var k in m) {
       if (hasOwnProperty.call(m, k) && !f(k)(m[k])) return false;
     }
     return true;
   };
-};
+}
 
-exports.size = function (m) {
+export function size(m) {
   var s = 0;
   for (var k in m) {
     if (hasOwnProperty.call(m, k)) {
@@ -89,19 +87,19 @@ exports.size = function (m) {
     }
   }
   return s;
-};
+}
 
-exports._lookup = function (no, yes, k, m) {
+export function _lookup(no, yes, k, m) {
   return k in m ? yes(m[k]) : no;
-};
+}
 
-exports._lookupST = function (no, yes, k, m) {
+export function _lookupST(no, yes, k, m) {
   return function () {
     return k in m ? yes(m[k]) : no;
   };
-};
+}
 
-function toArrayWithKey(f) {
+export function toArrayWithKey(f) {
   return function (m) {
     var r = [];
     for (var k in m) {
@@ -113,8 +111,6 @@ function toArrayWithKey(f) {
   };
 }
 
-exports.toArrayWithKey = toArrayWithKey;
-
-exports.keys = Object.keys || toArrayWithKey(function (k) {
+export const keys = Object.keys || toArrayWithKey(function (k) {
   return function () { return k; };
 });

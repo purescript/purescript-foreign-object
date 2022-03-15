@@ -1,7 +1,5 @@
-"use strict";
-
-exports.unsafeFreeze = function (m) {
+export function unsafeFreeze(m) {
   return function () {
     return m;
   };
-};
+}

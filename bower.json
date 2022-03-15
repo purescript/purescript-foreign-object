@@ -20,22 +20,22 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-arrays": "^6.0.0",
-    "purescript-foldable-traversable": "^5.0.0",
-    "purescript-functions": "^5.0.0",
-    "purescript-gen": "^3.0.0",
-    "purescript-lists": "^6.0.0",
-    "purescript-maybe": "^5.0.0",
-    "purescript-prelude": "^5.0.0",
-    "purescript-st": "^5.0.0",
-    "purescript-tailrec": "^5.0.0",
-    "purescript-tuples": "^6.0.0",
-    "purescript-typelevel-prelude": "^6.0.0",
-    "purescript-unfoldable": "^5.0.0"
+    "purescript-arrays": "master",
+    "purescript-foldable-traversable": "master",
+    "purescript-functions": "master",
+    "purescript-gen": "master",
+    "purescript-lists": "master",
+    "purescript-maybe": "master",
+    "purescript-prelude": "master",
+    "purescript-st": "master",
+    "purescript-tailrec": "master",
+    "purescript-tuples": "master",
+    "purescript-typelevel-prelude": "master",
+    "purescript-unfoldable": "master"
   },
   "devDependencies": {
-    "purescript-assert": "^5.0.0",
-    "purescript-minibench": "^3.0.0",
-    "purescript-quickcheck": "^7.0.0"
+    "purescript-assert": "master",
+    "purescript-minibench": "master",
+    "purescript-quickcheck": "master"
   }
 }

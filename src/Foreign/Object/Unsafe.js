@@ -1,7 +1,5 @@
-"use strict";
-
-exports.unsafeIndex = function (m) {
+export function unsafeIndex(m) {
   return function (k) {
     return m[k];
   };
-};
+}

@@ -175,7 +175,7 @@ objectTests = do
 
   log "fromFoldableWith (<>) = fromFoldable . collapse with (<>) . group on fst"
   quickCheck $ \arr ->
-    let combine (Tuple s a) (Tuple t b) = (Tuple s $ b <> a)
+    let combine (Tuple s a) (Tuple _ b) = (Tuple s $ b <> a)
         foldl1 g = unsafePartial \(L.Cons x xs) -> foldl g x xs
         f = O.fromFoldable <<< map (foldl1 combine <<< NEL.toList) <<<
             L.groupBy ((==) `on` fst) <<< L.sortBy (compare `on` fst) in
@@ -230,7 +230,7 @@ objectTests = do
 
   log "foldMapWithIndex f ~ traverseWithIndex (\\k v -> tell (f k v))"
   quickCheck \(TestObject m :: TestObject Int) ->
-    let f k v = "(" <> "k" <> "," <> show v <> ")"
+    let f _ v = "(" <> "k" <> "," <> show v <> ")"
         resultA = foldMapWithIndex f m
         resultB = snd (runWriter (traverseWithIndex (\k v -> tell (f k v)) m))
     in resultA === resultB
