@@ -1,6 +1,7 @@
-exports["new"] = function () {
+const newImpl = function () {
   return {};
 };
+export { newImpl as new };
 
 export function peekImpl(just) {
   return function (nothing) {
@@ -25,7 +26,7 @@ export function poke(k) {
   };
 }
 
-exports["delete"] = function (k) {
+const deleteImpl = function (k) {
   return function (m) {
     return function () {
       delete m[k];
@@ -33,3 +34,4 @@ exports["delete"] = function (k) {
     };
   };
 };
+export { deleteImpl as delete };
