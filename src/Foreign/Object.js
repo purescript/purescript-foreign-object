@@ -99,7 +99,7 @@ export function _lookupST(no, yes, k, m) {
   };
 }
 
-function toArrayWithKey(f) {
+export function toArrayWithKey(f) {
   return function (m) {
     var r = [];
     for (var k in m) {
@@ -110,8 +110,6 @@ function toArrayWithKey(f) {
     return r;
   };
 }
-
-export {toArrayWithKey};
 
 export const keys = Object.keys || toArrayWithKey(function (k) {
   return function () { return k; };
