@@ -5,6 +5,16 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+
+New features:
+
+Bugfixes:
+
+Other improvements:
+
+## [v4.0.0](https://github.com/purescript/purescript-foreign-object/releases/tag/v4.0.0) - 2022-04-27
+
+Breaking changes:
 - Migrate FFI to ES modules (#27 by @JordanMartinez)
 
 New features:
