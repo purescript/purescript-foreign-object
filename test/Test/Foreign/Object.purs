@@ -4,6 +4,7 @@ import Prelude
 
 import Control.Monad.Writer (runWriter, tell)
 import Data.Array as A
+import Data.Array.NonEmpty as NEA
 import Data.Foldable (foldl, foldr, for_)
 import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
 import Data.Function (on)
@@ -44,7 +45,7 @@ instance showInstruction :: (Show k, Show v) => Show (Instruction k v) where
 instance arbInstruction :: (Arbitrary v) => Arbitrary (Instruction String v) where
   arbitrary = do
     b <- arbitrary
-    k <- Gen.frequency $ NEL.cons' (Tuple 10.0 (pure "hasOwnProperty")) (pure (Tuple 50.0 arbitrary))
+    k <- Gen.frequency $ NEA.cons' (Tuple 10.0 (pure "hasOwnProperty")) (pure (Tuple 50.0 arbitrary))
     case b of
       true -> do
         v <- arbitrary
