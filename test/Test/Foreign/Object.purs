@@ -10,9 +10,12 @@ import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
 import Data.Function (on)
 import Data.List as L
 import Data.List.NonEmpty as NEL
+import Data.Map as M
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Profunctor.Strong (first)
 import Data.Semigroup.First (First(..))
 import Data.Semigroup.Last (Last(..))
+import Data.String (toUpper)
 import Data.Traversable (sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..), fst, snd, uncurry)
@@ -150,6 +153,14 @@ objectTests = do
     quickCheck (O.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
     quickCheck (O.lookup "2" nums == Nothing     <?> "invalid lookup - 2")
 
+  log "fromFoldableWithIndex & key collision"
+  do
+    let numsMap = M.fromFoldable [Tuple 0 "zero", Tuple 1 "what", Tuple 1 "one"]
+        nums = O.fromFoldableWithIndex show numsMap
+    quickCheck (O.lookup "0" nums == Just "zero" <?> "invalid lookup - 0")
+    quickCheck (O.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
+    quickCheck (O.lookup "2" nums == Nothing     <?> "invalid lookup - 2")
+
   log "fromFoldableWith const [] = empty"
   quickCheck (O.fromFoldableWith const [] == (O.empty :: O.Object Unit)
     <?> "was not empty")
@@ -169,6 +180,15 @@ objectTests = do
   quickCheck $ \(TestObject m) ->
     let f m1 = O.fromFoldable ((O.toUnfoldable m1) :: L.List (Tuple String Int)) in
     O.toUnfoldable (f m) == (O.toUnfoldable m :: L.List (Tuple String Int)) <?> show m
+
+  log "fromFoldableWithIndex id = id"
+  quickCheck $ \(TestObject m :: _ Int) ->
+    O.fromFoldableWithIndex identity m == identity m <?> show m
+
+  log "fromFoldableWithIndex f ~ fromFoldable . map (first f) . toUnfoldable"
+  quickCheck $ \(TestObject m) ->
+    O.fromFoldableWithIndex toUpper m ==
+    O.fromFoldable (first toUpper <$> (O.toUnfoldable m :: L.List (Tuple String Int))) <?> show m
 
   log "fromFoldableWith const = fromFoldable"
   quickCheck $ \arr -> O.fromFoldableWith const arr ==
