@@ -223,7 +223,8 @@ fromFoldable l = runST do
   pure s
 
 -- | Create an `Object a` from an indexed foldable collection, using the
--- | specified function for converting the index to `String`
+-- | specified function for converting the index to a `String` key. On key
+-- | collisions, the last value for the duplicate key will be kept.
 fromFoldableWithIndex :: forall f k v. FoldableWithIndex k f => (k -> String) -> f v -> Object v
 fromFoldableWithIndex f l = runST do
   s <- OST.new
