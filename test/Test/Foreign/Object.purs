@@ -155,11 +155,11 @@ objectTests = do
 
   log "fromFoldableWithIndex & key collision"
   do
-    let numsMap = M.fromFoldable [Tuple 0 "zero", Tuple 1 "what", Tuple 1 "one"]
-        nums = O.fromFoldableWithIndex show numsMap
-    quickCheck (O.lookup "0" nums == Just "zero" <?> "invalid lookup - 0")
-    quickCheck (O.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
-    quickCheck (O.lookup "2" nums == Nothing     <?> "invalid lookup - 2")
+    let numsMap = M.fromFoldable [Tuple 0 "zero", Tuple 1 "one", Tuple 2 "two"]
+        f n = if n == 0 then "x" else "y"
+        nums = O.fromFoldableWithIndex f numsMap
+    quickCheck (O.lookup "x" nums == Just "zero" <?> "invalid lookup - x")
+    quickCheck (O.lookup "y" nums == Just "two"  <?> "invalid lookup - y")
 
   log "fromFoldableWith const [] = empty"
   quickCheck (O.fromFoldableWith const [] == (O.empty :: O.Object Unit)
