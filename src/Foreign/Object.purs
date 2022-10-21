@@ -16,6 +16,7 @@ module Foreign.Object
   , fromFoldable
   , fromFoldableWith
   , fromFoldableWithIndex
+  , fromFoldableWithIndexWith
   , fromHomogeneous
   , delete
   , pop
@@ -222,16 +223,25 @@ fromFoldable l = runST do
   ST.foreach (A.fromFoldable l) \(Tuple k v) -> void $ OST.poke k v s
   pure s
 
--- | Create an `Object a` from an indexed foldable collection, using the
--- | specified function for converting the index to a `String` key. On key
--- | collisions, the last value for the duplicate key will be kept.
-fromFoldableWithIndex :: forall f k v. FoldableWithIndex k f => (k -> String) -> f v -> Object v
-fromFoldableWithIndex f l = runST do
+-- | Create an `Object a` from a `String`-indexed foldable collection
+fromFoldableWithIndex :: forall f a. FoldableWithIndex String f => f a -> Object a
+fromFoldableWithIndex l = runST do
   s <- OST.new
-  forWithIndex_ l \k v -> OST.poke (f k) v s
+  forWithIndex_ l \k v -> OST.poke k v s
   pure s
 
 foreign import _lookupST :: forall a r z. Fn4 z (a -> z) String (STObject r a) (ST r z)
+
+-- | Create an `Object a` from an indexed foldable collection, using the
+-- | specified functions to map keys to `String` and combine values at duplicate
+-- | `String` keys
+fromFoldableWithIndexWith :: forall f k v. FoldableWithIndex k f => (k -> String) -> (v -> v -> v) -> f v -> Object v
+fromFoldableWithIndexWith printKey combineValues l = runST do
+  s <- OST.new
+  forWithIndex_ l \k v -> do
+    let k' = printKey k
+    runFn4 _lookupST v (flip combineValues v) k' s >>= \v' -> OST.poke k' v' s
+  pure s
 
 -- | Create an `Object a` from a foldable collection of key/value pairs, using the
 -- | specified function to combine values for duplicate keys.

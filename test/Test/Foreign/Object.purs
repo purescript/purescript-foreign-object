@@ -153,13 +153,21 @@ objectTests = do
     quickCheck (O.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
     quickCheck (O.lookup "2" nums == Nothing     <?> "invalid lookup - 2")
 
-  log "fromFoldableWithIndex & key collision"
+  log "fromFoldableWithIndex"
+  do
+    let numsMap = M.fromFoldable [Tuple "0" "zero", Tuple "1" "one", Tuple "2" "two"]
+        nums = O.fromFoldableWithIndex numsMap
+    quickCheck (O.lookup "0" nums == Just "zero" <?> "invalid lookup - 0")
+    quickCheck (O.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
+    quickCheck (O.lookup "2" nums == Just "two"  <?> "invalid lookup - 2")
+
+  log "fromFoldableWithIndexWith"
   do
     let numsMap = M.fromFoldable [Tuple 0 "zero", Tuple 1 "one", Tuple 2 "two"]
-        f n = if n == 0 then "x" else "y"
-        nums = O.fromFoldableWithIndex f numsMap
-    quickCheck (O.lookup "x" nums == Just "zero" <?> "invalid lookup - x")
-    quickCheck (O.lookup "y" nums == Just "two"  <?> "invalid lookup - y")
+        f n = if n == 0 then "0" else "1"
+        nums = O.fromFoldableWithIndexWith f (<>) numsMap
+    quickCheck (O.lookup "0" nums == Just "zero"   <?> "invalid lookup - 0")
+    quickCheck (O.lookup "1" nums == Just "onetwo")
 
   log "fromFoldableWith const [] = empty"
   quickCheck (O.fromFoldableWith const [] == (O.empty :: O.Object Unit)
@@ -181,13 +189,18 @@ objectTests = do
     let f m1 = O.fromFoldable ((O.toUnfoldable m1) :: L.List (Tuple String Int)) in
     O.toUnfoldable (f m) == (O.toUnfoldable m :: L.List (Tuple String Int)) <?> show m
 
-  log "fromFoldableWithIndex id = id"
+  log "fromFoldableWithIndex = id"
   quickCheck $ \(TestObject m :: _ Int) ->
-    O.fromFoldableWithIndex identity m == identity m <?> show m
+    O.fromFoldableWithIndex m == identity m <?> show m
 
-  log "fromFoldableWithIndex f ~ fromFoldable . map (first f) . toUnfoldable"
+  log "fromFoldableWithIndex = fromFoldable . toUnfoldable"
   quickCheck $ \(TestObject m) ->
-    O.fromFoldableWithIndex toUpper m ==
+    let f m1 = O.fromFoldable ((O.toUnfoldable m1) :: L.List (Tuple String Int)) in
+    O.fromFoldableWithIndex m == f m <?> show m
+
+  log "fromFoldableWithIndexWith f const ~ fromFoldable . map (first f) . toUnfoldable"
+  quickCheck $ \(TestObject m) ->
+    O.fromFoldableWithIndexWith toUpper const m ==
     O.fromFoldable (first toUpper <$> (O.toUnfoldable m :: L.List (Tuple String Int))) <?> show m
 
   log "fromFoldableWith const = fromFoldable"
