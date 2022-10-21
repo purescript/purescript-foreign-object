@@ -233,14 +233,21 @@ fromFoldableWithIndex l = runST do
 foreign import _lookupST :: forall a r z. Fn4 z (a -> z) String (STObject r a) (ST r z)
 
 -- | Create an `Object a` from an indexed foldable collection, using the
--- | specified functions to map keys to `String` and combine values at duplicate
--- | `String` keys
-fromFoldableWithIndexWith :: forall f k v. FoldableWithIndex k f => (k -> String) -> (v -> v -> v) -> f v -> Object v
-fromFoldableWithIndexWith printKey combineValues l = runST do
+-- | specified functions to map key-value pairs to `String`-value pairs and
+-- | combine values at duplicate `String` keys
+fromFoldableWithIndexWith
+  :: forall f k a b
+   . FoldableWithIndex k f
+  => (k -> a -> Tuple String b)
+  -> (b -> b -> b)
+  -> f a
+  -> Object b
+fromFoldableWithIndexWith f g l = runST do
   s <- OST.new
-  forWithIndex_ l \k v -> do
-    let k' = printKey k
-    runFn4 _lookupST v (flip combineValues v) k' s >>= \v' -> OST.poke k' v' s
+  let g' = flip g
+  forWithIndex_ l \k a -> do
+    let Tuple k' b = f k a
+    runFn4 _lookupST b (g' b) k' s >>= \b' -> OST.poke k' b' s
   pure s
 
 -- | Create an `Object a` from a foldable collection of key/value pairs, using the
@@ -315,7 +322,7 @@ filterWithKey predicate m = runST go
     m' <- OST.new
     foldM step m' m
     where
-      step acc k v = if predicate k v then OST.poke k v acc else pure acc
+    step acc k v = if predicate k v then OST.poke k v acc else pure acc
 
 -- | Filter out those key/value pairs of a map for which a predicate
 -- | on the key fails to hold.
