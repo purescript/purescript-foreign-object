@@ -15,6 +15,7 @@ module Foreign.Object
   , toAscUnfoldable
   , fromFoldable
   , fromFoldableWith
+  , fromFoldableWithIndex
   , fromHomogeneous
   , delete
   , pop
@@ -49,7 +50,7 @@ import Control.Monad.ST as ST
 import Data.Array as A
 import Data.Eq (class Eq1)
 import Data.Foldable (class Foldable, foldl, foldr, for_)
-import Data.FoldableWithIndex (class FoldableWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, forWithIndex_)
 import Data.Function.Uncurried (Fn2, runFn2, Fn4, runFn4)
 import Data.FunctorWithIndex (class FunctorWithIndex)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
@@ -219,6 +220,13 @@ fromFoldable :: forall f a. Foldable f => f (Tuple String a) -> Object a
 fromFoldable l = runST do
   s <- OST.new
   ST.foreach (A.fromFoldable l) \(Tuple k v) -> void $ OST.poke k v s
+  pure s
+
+-- | Create an `Object a` from a `String`-indexed foldable collection
+fromFoldableWithIndex :: forall f a. FoldableWithIndex String f => f a -> Object a
+fromFoldableWithIndex l = runST do
+  s <- OST.new
+  forWithIndex_ l \k v -> OST.poke k v s
   pure s
 
 foreign import _lookupST :: forall a r z. Fn4 z (a -> z) String (STObject r a) (ST r z)

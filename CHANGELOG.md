@@ -7,6 +7,7 @@ Notable changes to this project are documented in this file. The format is based
 Breaking changes:
 
 New features:
+- Add `fromFoldableWithIndex` (#30 by @ptrfrncsmrph)
 
 Bugfixes:
 

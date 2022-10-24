@@ -36,6 +36,7 @@
   "devDependencies": {
     "purescript-assert": "^6.0.0",
     "purescript-minibench": "^4.0.0",
+    "purescript-ordered-collections": "^3.0.0",
     "purescript-quickcheck": "^8.0.1"
   }
 }

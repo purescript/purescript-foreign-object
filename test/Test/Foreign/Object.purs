@@ -10,6 +10,7 @@ import Data.FoldableWithIndex (foldlWithIndex, foldrWithIndex, foldMapWithIndex)
 import Data.Function (on)
 import Data.List as L
 import Data.List.NonEmpty as NEL
+import Data.Map as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Semigroup.First (First(..))
 import Data.Semigroup.Last (Last(..))
@@ -150,6 +151,14 @@ objectTests = do
     quickCheck (O.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
     quickCheck (O.lookup "2" nums == Nothing     <?> "invalid lookup - 2")
 
+  log "fromFoldableWithIndex"
+  do
+    let numsMap = M.fromFoldable [Tuple "0" "zero", Tuple "1" "one", Tuple "2" "two"]
+        nums = O.fromFoldableWithIndex numsMap
+    quickCheck (O.lookup "0" nums == Just "zero" <?> "invalid lookup - 0")
+    quickCheck (O.lookup "1" nums == Just "one"  <?> "invalid lookup - 1")
+    quickCheck (O.lookup "2" nums == Just "two"  <?> "invalid lookup - 2")
+
   log "fromFoldableWith const [] = empty"
   quickCheck (O.fromFoldableWith const [] == (O.empty :: O.Object Unit)
     <?> "was not empty")
@@ -169,6 +178,15 @@ objectTests = do
   quickCheck $ \(TestObject m) ->
     let f m1 = O.fromFoldable ((O.toUnfoldable m1) :: L.List (Tuple String Int)) in
     O.toUnfoldable (f m) == (O.toUnfoldable m :: L.List (Tuple String Int)) <?> show m
+
+  log "fromFoldableWithIndex = id"
+  quickCheck $ \(TestObject m :: _ Int) ->
+    O.fromFoldableWithIndex m == identity m <?> show m
+
+  log "fromFoldableWithIndex = fromFoldable . toUnfoldable"
+  quickCheck $ \(TestObject m) ->
+    let f m1 = O.fromFoldable ((O.toUnfoldable m1) :: L.List (Tuple String Int)) in
+    O.fromFoldableWithIndex m == f m <?> show m
 
   log "fromFoldableWith const = fromFoldable"
   quickCheck $ \arr -> O.fromFoldableWith const arr ==
