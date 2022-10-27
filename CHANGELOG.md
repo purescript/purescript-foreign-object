@@ -7,22 +7,20 @@ Notable changes to this project are documented in this file. The format is based
 Breaking changes:
 
 New features:
-- Add `fromFoldableWithIndex` (#30 by @ptrfrncsmrph)
 
 Bugfixes:
 
 Other improvements:
+
+## [v4.1.0](https://github.com/purescript/purescript-foreign-object/releases/tag/v4.1.0) - 2022-10-27
+
+New features:
+- Add `fromFoldableWithIndex` (#30 by @ptrfrncsmrph)
 
 ## [v4.0.0](https://github.com/purescript/purescript-foreign-object/releases/tag/v4.0.0) - 2022-04-27
 
 Breaking changes:
 - Migrate FFI to ES modules (#27 by @JordanMartinez)
-
-New features:
-
-Bugfixes:
-
-Other improvements:
 
 ## [v3.0.0](https://github.com/purescript/purescript-foreign-object/releases/tag/v3.0.0) - 2021-02-26
 
