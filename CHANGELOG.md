@@ -6,7 +6,7 @@ Notable changes to this project are documented in this file. The format is based
 
 Other improvements:
 
-- Migrate from Bower/Pulp to Spago and update CI, linting, formatting, and the benchmark runner.
+- Migrate from Bower/Pulp to Spago and update CI, linting, formatting, and the benchmark runner (#31 by @thomashoneyman).
 
 ## [v4.1.0](https://github.com/purescript/purescript-foreign-object/releases/tag/v4.1.0) - 2022-10-27
 
