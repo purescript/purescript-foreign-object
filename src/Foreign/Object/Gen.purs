@@ -4,14 +4,14 @@ import Prelude
 
 import Control.Monad.Gen (class MonadGen, chooseInt, resize, sized, unfoldable)
 import Control.Monad.Rec.Class (class MonadRec)
-import Foreign.Object (Object, fromFoldable)
-import Data.Tuple (Tuple(..))
 import Data.List (List)
+import Data.Tuple (Tuple(..))
+import Foreign.Object (Object, fromFoldable)
 
 -- | Generates a `Object` using the specified key and value generators.
 genForeignObject
   :: forall m a
-  . MonadRec m
+   . MonadRec m
   => MonadGen m
   => m String
   -> m a

@@ -111,6 +111,10 @@ export function toArrayWithKey(f) {
   };
 }
 
-export const keys = Object.keys || toArrayWithKey(function (k) {
-  return function () { return k; };
-});
+export const keys =
+  Object.keys ||
+  toArrayWithKey(function (k) {
+    return function () {
+      return k;
+    };
+  });

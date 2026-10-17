@@ -1,13 +1,13 @@
 module Bench.Foreign.Object where
 
 import Prelude
+
+import Data.List as L
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Console (log)
-import Performance.Minibench (benchWith)
-
-import Data.Tuple (Tuple(..))
-import Data.List as L
 import Foreign.Object as Object
+import Performance.Minibench (benchWith)
 
 benchForeignObject :: Effect Unit
 benchForeignObject = do
@@ -16,9 +16,10 @@ benchForeignObject = do
 
   where
   benchFromFoldable = do
-    let natStrs = show <$> L.range 0 99999
-        natPairs = (flip Tuple) unit <$> natStrs
-        shortPairList = L.take 10000 natPairs
+    let
+      natStrs = show <$> L.range 0 99999
+      natPairs = (flip Tuple) unit <$> natStrs
+      shortPairList = L.take 10000 natPairs
 
     log $ "fromFoldable (" <> show (L.length shortPairList) <> ")"
     benchWith 100 \_ -> Object.fromFoldable shortPairList

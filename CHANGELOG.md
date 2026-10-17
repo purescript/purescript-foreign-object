@@ -2,7 +2,7 @@
 
 Notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased](https://github.com/purescript/purescript-foreign-object/compare/v4.1.1...HEAD)
 
 Breaking changes:
 
@@ -12,30 +12,42 @@ Bugfixes:
 
 Other improvements:
 
+## [v4.1.1](https://github.com/purescript/purescript-foreign-object/releases/tag/v4.1.1) - 2026-10-17
+
+Other improvements:
+
+- Migrate from Bower/Pulp to Spago and update CI, linting, formatting, and the benchmark runner (#31 by @thomashoneyman).
+
 ## [v4.1.0](https://github.com/purescript/purescript-foreign-object/releases/tag/v4.1.0) - 2022-10-27
 
 New features:
+
 - Add `fromFoldableWithIndex` (#30 by @ptrfrncsmrph)
 
 ## [v4.0.0](https://github.com/purescript/purescript-foreign-object/releases/tag/v4.0.0) - 2022-04-27
 
 Breaking changes:
+
 - Migrate FFI to ES modules (#27 by @JordanMartinez)
 
 ## [v3.0.0](https://github.com/purescript/purescript-foreign-object/releases/tag/v3.0.0) - 2021-02-26
 
 Breaking changes:
+
 - Added support for PureScript 0.14 and dropped support for all previous versions (#17)
 - Fixed the `Semigroup` instance for `Foreign.Object.Object` (#19)
 
 New features:
+
 - Added roles declarations to allow safe coercions (#16)
 - Added `unionWith` (#21)
 
 Bugfixes:
+
 - Fixed test using `Arbitrary` instance for `Instruction String v` (#22)
 
 Other improvements:
+
 - Migrated CI to GitHub Actions and updated installation instructions to use Spago (#20)
 - Added a CHANGELOG.md file and pull request template (#24, #25)
 - Improved docs for `runST` (#12)
