@@ -38,8 +38,7 @@ example = do
     -- convert homogeneous records to Object
     converted = FO.fromHomogeneous { a: 1, b: 2, c: 3}
     -- check that the converted is equal to a regularly built Object
-    built
-      = FO.empty
+    built = FO.empty
       # FO.insert "a" 1
       # FO.insert "b" 2
       # FO.insert "c" 3

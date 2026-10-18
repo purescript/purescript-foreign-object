@@ -18,8 +18,8 @@ example = do
     -- insert to an empty Object
     inserted = FO.insert "a" 1 empty
 
-    -- or: use the singleton function
-    -- singleton FO.singleton "a" 1
+  -- or: use the singleton function
+  -- singleton FO.singleton "a" 1
 
   -- lookup values for existing in the Object as a result of Maybe
   let lookup = FO.lookup "a" inserted
@@ -31,10 +31,9 @@ example = do
 
   let
     -- convert homogeneous records to Object
-    converted = FO.fromHomogeneous { a: 1, b: 2, c: 3}
+    converted = FO.fromHomogeneous { a: 1, b: 2, c: 3 }
     -- check that the converted is equal to a regularly built Object
-    built
-      = FO.empty
+    built = FO.empty
       # FO.insert "a" 1
       # FO.insert "b" 2
       # FO.insert "c" 3

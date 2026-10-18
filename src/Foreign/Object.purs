@@ -51,9 +51,9 @@ import Data.Array as A
 import Data.Eq (class Eq1)
 import Data.Foldable (class Foldable, foldl, foldr, for_)
 import Data.FoldableWithIndex (class FoldableWithIndex, forWithIndex_)
-import Data.Function.Uncurried (Fn2, runFn2, Fn4, runFn4)
+import Data.Function.Uncurried (Fn2, Fn4, runFn2, runFn4)
 import Data.FunctorWithIndex (class FunctorWithIndex)
-import Data.Maybe (Maybe(..), maybe, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Traversable (class Traversable, traverse)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..), fst, uncurry)
@@ -168,7 +168,8 @@ foreign import empty :: forall a. Object a
 
 -- | Test whether one map contains all of the keys and values contained in another map
 isSubmap :: forall a. Eq a => Object a -> Object a -> Boolean
-isSubmap m1 m2 = all f m1 where
+isSubmap m1 m2 = all f m1
+  where
   f k v = runFn4 _lookup false ((==) v) k m2
 
 -- | Test whether a map is empty
@@ -234,17 +235,19 @@ foreign import _lookupST :: forall a r z. Fn4 z (a -> z) String (STObject r a) (
 -- | Create an `Object a` from a foldable collection of key/value pairs, using the
 -- | specified function to combine values for duplicate keys.
 fromFoldableWith :: forall f a. Foldable f => (a -> a -> a) -> f (Tuple String a) -> Object a
-fromFoldableWith f l = runST (do
-  s <- OST.new
-  for_ l (\(Tuple k v) -> runFn4 _lookupST v (f v) k s >>= \v' -> OST.poke k v' s)
-  pure s)
+fromFoldableWith f l = runST
+  ( do
+      s <- OST.new
+      for_ l (\(Tuple k v) -> runFn4 _lookupST v (f v) k s >>= \v' -> OST.poke k v' s)
+      pure s
+  )
 
 -- | Create an `Object a` from a homogeneous record, i.e. all of the record
 -- | fields are of the same type.
 fromHomogeneous :: forall r a. Homogeneous r a => { | r } -> Object a
 fromHomogeneous = unsafeCoerce
 
-foreign import toArrayWithKey :: forall a b . (String -> a -> b) -> Object a -> Array b
+foreign import toArrayWithKey :: forall a b. (String -> a -> b) -> Object a -> Array b
 
 -- | Unfolds a map into a list of key/value pairs
 toUnfoldable :: forall f a. Unfoldable f => Object a -> f (Tuple String a)
@@ -303,7 +306,7 @@ filterWithKey predicate m = runST go
     m' <- OST.new
     foldM step m' m
     where
-      step acc k v = if predicate k v then OST.poke k v acc else pure acc
+    step acc k v = if predicate k v then OST.poke k v acc else pure acc
 
 -- | Filter out those key/value pairs of a map for which a predicate
 -- | on the key fails to hold.
